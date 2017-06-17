@@ -1,0 +1,6 @@
+package wg
+class scaleHandler 
+
+system action GetScale(number d1, number d2, number r1, number r2, number nsl) returns number    
+
+end

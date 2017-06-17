@@ -1,0 +1,88 @@
+/*
+program based on algorithm developed By Dr. Peter B.L. Meijer
+ (Copyright © Peter B.L. Meijer)   
+*/
+use Libraries.Game.Game
+        use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Drawable
+use Libraries.System.File
+use Libraries.Data.Formats.SeparatedValue
+use Libraries.Data.Formats.SeparatedValueFileReader
+use Libraries.Sound.Audio  
+use wg.all
+class Main is Game
+SeparatedValue rdr
+integer counter=0
+                    Drawable line    
+action Main
+me:SetGameName("Star Sonify")        
+StartGame()
+    end
+
+    
+    action CreateGame
+File f
+f:SetPath("sky.csv")
+rdr:Read(f)
+if rdr:IsConsistent()=true
+output "ok"
+output "columns="+ rdr:GetNumberOfColumns()
+else
+output "not ok"
+quit()
+end
+f:Close()
+end
+
+    action Update(number seconds)
+if  counter<rdr:GetNumberOfRows()    
+//process data
+text x1=rdr:Get(counter,1)
+text y1=rdr:Get(counter,2)
+number x=x1:ParseNumber()
+number y=y1:ParseNumber()
+text xb=rdr:Get(counter,3)
+text yb=rdr:Get(counter,4)
+  number brightness=xb:ParseNumber()+yb:ParseNumber()
+//the y coordinate reprents 360 degrees in real space but has to be mapped to the range of frequencies for best hearing between 500 and 5000 HZ
+scaleHandler h
+number fq=h:GetScale(0,360,500,5000,y)
+
+
+
+makewavefile ff
+ff:generateTone(fq)
+Audio audio1
+File af
+af:SetPath("voicel.wav")
+audio1:Load(af)
+audio1:DisableLooping()
+audio1:SetX(x)
+audio1:SetY(y)
+audio1:SetZ(fq)
+audio1:SetMaximumVolumeDistance(x+y)
+//A pixel has a value from 0 to 255 but the volume has to be scaled from 0 to 1
+number fqv=h:GetScale(0,255,0,1,brightness)
+audio1:SetVolume(fqv)
+Color red
+red:SetAlpha(fqv)
+line:LoadLine(20, 100,red)    
+                   line:SetPosition(x,y)
+Add(line)
+audio1:PlayUntilDone()
+audio1:Dispose()
+line:Dispose()
+af:Close()
+af:Delete()
+
+output "processing record"+" " +counter+ "of"+ rdr:GetNumberOfRows()
+counter=counter+1
+else
+output "at end of rows"
+quit()
+end//main if
+end// end of action
+action quit()
+me:Exit()
+end
+end//end of class

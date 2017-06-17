@@ -1,0 +1,4 @@
+package wg
+class makewavefile 
+system action generateTone(number frequency)     
+    end
